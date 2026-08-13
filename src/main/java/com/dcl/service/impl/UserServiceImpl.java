@@ -2,6 +2,7 @@ package com.dcl.service.impl;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.dcl.dto.UserDto;
@@ -14,11 +15,16 @@ import com.dcl.service.UserService;
 @Service
 public class UserServiceImpl implements UserService {
 
+	private final BCryptPasswordEncoder encoder;
+
 	@Autowired
 	private UserRepo urepo;
 	
 	@Autowired
 	private ModelMapper mapper;
+	UserServiceImpl(BCryptPasswordEncoder encoder) {
+		this.encoder = encoder;
+	}
 	@Override
 	public UserDto register(RegisterRequest request) {
 		User alreadyExists=urepo.findByEmail(request.getEmail()).orElse(null);
@@ -29,7 +35,9 @@ public class UserServiceImpl implements UserService {
 		User user=new User();
 		user.setEmail(request.getEmail());
 		user.setPassword(request.getPassword());
+		user.setPassword(encoder.encode(request.getEmail()));
 		user=urepo.save(user);
+		
 		
 		UserDto dto=new UserDto();
 		dto.setEmail(user.getEmail());
